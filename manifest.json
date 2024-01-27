@@ -1,0 +1,23 @@
+{
+  "name": "无名杀",
+  "icons": [
+    {
+      "src": "assets/meta/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/meta/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable any"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#3c3c3c",
+  "display": "fullscreen",
+  "theme_color": "#3c3c3c",
+  "description": "无名杀",
+  "orientation": "landscape"
+}

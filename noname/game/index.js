@@ -1344,15 +1344,11 @@ export class Game {
 	 */
 	connect(ip, callback) {
 		if (game.online) return;
-		let withport = false;
-		let index = ip.lastIndexOf(":");
-		if (index != -1) {
-			index = parseFloat(ip.slice(index + 1));
-			if (index && Math.floor(index) == index) {
-				withport = true;
-			}
+		if (ip.indexOf("://") == -1) {
+			// no protocol specified, use default protocol in config
+			ip = (get.config("wss_mode", "connect") ? "wss://" : "ws://").concat(ip);
 		}
-		if (!withport) ip = ip + ":8080";
+		let url = new URL(ip);
 		_status.connectCallback = callback;
 		try {
 			if (game.ws) {
@@ -1360,13 +1356,17 @@ export class Game {
 				game.ws.close();
 				delete game.ws;
 			}
-			let str = "";
-			if (!ip.startsWith("wss://") && !ip.startsWith("ws://"))
-				str = get.config("wss_mode", "connect") ? "wss://" : "ws://";
-			game.ws = new WebSocket(str + ip + "");
-		} catch {
-			// 今天狂神龙尊来了这里也没有参数
-			alert("错误：无效联机地址");
+			game.ws = new WebSocket(url.href);
+		}
+		// 今天狂神龙尊来了这里也没有参数
+		catch (e) {
+			if (e.name == "SecurityError") {
+				alert("错误：当前的安全策略不允许未经加密的 WebSocket 连接。请使用加密连接或" +
+				  "更改浏览器的安全策略，或在 http 协议下运行本站点。详见 " + 
+				  "https://github.com/RainEggplant/noname-pwa/blob/master/allow_mixed_content.md");
+			} else {
+				alert("错误：无效联机地址。" + e.toString());
+			}
 			if (callback) callback(false);
 			return;
 		}
@@ -4013,10 +4013,20 @@ export class Game {
 			}
 			window.location.reload();
 		}
-		//非ios的网页版
-		else if (!ios) {
+		//非ios的网页版; PWA
+		else {
 			window.onbeforeunload = null;
-			window.close();
+			if (window.isAndroidApp) {
+				window.close();
+				window.onpopstate = null;
+				window.history.back();
+				window.location.replace('assets/exit-android.html');
+			} else if (window.isIOSApp) {
+				window.location.replace('assets/exit-ios.html');
+			} else {
+				window.onbeforeunload = null;
+				window.close();
+			}
 		}
 	}
 	/**

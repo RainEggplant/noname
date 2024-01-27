@@ -38,7 +38,7 @@ export class Library {
 	updateURLS = updateURLs;
 	updateURL = updateURLs.github;
 	mirrorURL = updateURLs.coding;
-	hallURL = "47.99.105.222";
+	hallURL = "ws://47.99.105.222:8080";
 	assetURL = assetURL;
 	userAgent = userAgent;
 	characterDefaultPicturePath = characterDefaultPicturePath;
@@ -6867,9 +6867,9 @@ export class Library {
 				},
 				wss_mode: {
 					name: "使用WSS协议",
-					init: false,
+					init: true,
 					frequent: true,
-					intro: "在用户填写的IP地址没有直接指定使用WS/WSS协议的情况下，默认使用WSS协议，而非WS协议来连接到联机服务器。<br>请不要轻易勾选此项！",
+					intro: "在用户填写的IP地址没有直接指定使用WS/WSS协议的情况下，默认使用WSS协议，而非WS协议来连接到联机服务器。<br>（PWA 版已自动开启该选项）！",
 				},
 				read_clipboard: {
 					name: "读取邀请链接",

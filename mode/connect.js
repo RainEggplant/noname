@@ -34,13 +34,13 @@ game.import("mode", function (lib, game, ui, get, ai, _status) {
 
 				event.created = true;
 				var node = ui.create.div(".shadowed");
-				node.style.width = "400px";
+				node.style.width = "600px";
 				node.style.height = "30px";
 				node.style.lineHeight = "30px";
 				node.style.fontFamily = "xinwei";
 				node.style.fontSize = "30px";
 				node.style.padding = "10px";
-				node.style.left = "calc(50% - 210px)";
+				node.style.left = "calc(50% - 300px)";
 				node.style.top = "calc(50% - 20px)";
 				node.style.whiteSpace = "nowrap";
 				node.textContent = lib.config.last_ip || lib.hallURL;
@@ -48,6 +48,13 @@ game.import("mode", function (lib, game, ui, get, ai, _status) {
 				node.style.webkitUserSelect = "text";
 				node.style.textAlign = "center";
 				node.style.overflow = "hidden";
+
+				// paste as plain text
+				node.addEventListener('paste', function (e) {
+					e.preventDefault()
+					var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+					document.execCommand("insertHTML", false, text);
+				});
 
 				var connect = function (e) {
 					event.textnode.textContent = "正在连接...";
