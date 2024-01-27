@@ -1,0 +1,71 @@
+name: Auto Update
+
+env:
+  upstream_repo: libccy/noname
+  pwa_tool_repo: RainEggplant/noname-pwa
+
+on:
+  schedule:
+    - cron: 0 19 * * * # 3:00 AM, Beijing
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  auto-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check for Available Updates
+        id: check_update
+        run: |
+          local_commit=$(curl -sL ${{ github.api_url }}/repos/${{ github.repository }}/branches/master | jq -r .commit.sha)
+          remote_commit=$(curl -sL ${{ github.api_url }}/repos/${{ env.upstream_repo }}/commits | jq -r .[0].sha)
+          echo "available=$([ $local_commit == $remote_commit ] && echo "false" || echo "true")" >> $GITHUB_OUTPUT
+
+      - name: Checkout the PWA tool repo
+        if: success() && steps.check_update.outputs.available == 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.pwa_tool_repo }}
+          submodules: false
+
+      - name: Checkout current repo and merge upstream changes
+        if: success() && steps.check_update.outputs.available == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git clone --shallow-since 2024-01-18 ${{ github.server_url }}/${{ github.repository }}.git noname
+          cd noname
+          git pull --rebase ${{ github.server_url }}/${{ env.upstream_repo }}.git master:master
+
+      - uses: actions/setup-node@v3
+        if: success() && steps.check_update.outputs.available == 'true'
+        with:
+          cache: 'yarn'
+
+      - name: Generate new `sw.js` and version badge
+        if: success() && steps.check_update.outputs.available == 'true'
+        run: |
+          yarn install --frozen-lockfile --immutable
+          node ./node_modules/gulp/bin/gulp.js build
+          cd noname
+          version=$(grep -Po "(?<=version:').*(?=')" game/update.js)
+          change_log=$(grep -Pzo "changeLog:\[[\S\s]*?\]" game/update.js)
+          badge_url="https:\/\/img.shields.io\/badge\/Version-${version}-brightgreen"
+          badge_img='![badge:version]'"(${badge_url})"
+          sed -i "s/\!\[badge:version\]\(.*\)/${badge_img}/" README.md
+          git add .
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Upgrade to v${version}" -m "${change_log}"
+          fi
+
+      - name: Push to origin
+        if: success() && steps.check_update.outputs.available == 'true'
+        run: |
+          cd noname
+          origin_url=$(echo ${{ github.server_url }} | sed "s/https:\/\//https:\/\/${{ github.repository_owner }}:${{ github.token }}@/")
+          origin_url=$origin_url/${{ github.repository }}.git
+          git remote set-url origin ${origin_url}
+          git push -f origin pwa_v2
+          git push origin master
