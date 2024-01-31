@@ -1,6 +1,6 @@
 # noname-PWA (deployment repo)
 
-![badge:version](https://img.shields.io/badge/Version-1.10.6.2-brightgreen)
+![badge:version](https://img.shields.io/badge/Version-1.10.7-brightgreen)
 
 此仓库为 PWA 版无名杀的部署仓库，每日自动拉取上游更新，并通过 GitHub Pages 自动部署 [游戏网页](https://raineggplant.github.io/noname/)。
 
